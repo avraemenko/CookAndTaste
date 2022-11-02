@@ -1,0 +1,6 @@
+framework module Pods_CookAndTaste_CookAndTasteUITests {
+  umbrella header "Pods-CookAndTaste-CookAndTasteUITests-umbrella.h"
+
+  export *
+  module * { export * }
+}
