@@ -17,12 +17,12 @@ class CookingService: ObservableObject {
     
     private(set) var recipeIDs = [Int]()
     @Published private(set) var searchResults = [Result]()
+    @Published var recipe = RecipeInfo(id: 0, image: "", instructions: "", readyInMinutes: 0)
     
     lazy private var networkService = AlamoNetworking<RecipesEndpoint>("https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com", headers: headers)
     lazy private var complexNetworkService = AlamoNetworking<RecipeInfoEndpoint>("https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com", headers: headers)
     
     init() {
-        
     }
     
     public func fetchData(query : String) async {
@@ -42,7 +42,6 @@ class CookingService: ObservableObject {
                         else { continue }
                         DispatchQueue.main.async {
                             self.searchResults.append(Result(id: id, image: image, title: title, imageType: imageType))
-                            print( self.searchResults)
                         }
                     }
                 }
@@ -50,9 +49,35 @@ class CookingService: ObservableObject {
             catch let error as NSError {
                 print("Failed to load: \(error.localizedDescription)")
             }
-//            let recipeInfo = try await complexNetworkService.perform(.get, RecipeInfoEndpoint(with: "\(recipeIDs.first ?? 0)"), RecipeByID("\(recipeIDs.first ?? 0)"))
-           // print(try JSONSerialization.jsonObject(with: recipeInfo!, options: []) as? [String: Any])
         }
+    }
+    
+    func getRecipe(parameter : String){
+        Task{
+            let data = try await complexNetworkService.perform(.get, RecipeInfoEndpoint(with: parameter), RecipeByID(parameter))
+            do {
+                if let json = try JSONSerialization.jsonObject(with: data!, options: []) as? [String: Any] {
+                    guard let id = json["id"] as? Int,
+                          let image =  json["image"] as? String,
+                          let instructions = json["instructions"] as? String,
+                          let readyInMinutes = json["readyInMinutes"] as? Int
+                    else { return }
+                    DispatchQueue.main.async {
+                        self.recipe = RecipeInfo(id: id, image: image, instructions: instructions, readyInMinutes: readyInMinutes)
+                    }
+                }
+            }
+            catch let error as NSError {
+                print("Failed to load: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    struct RecipeInfo : Codable, Identifiable {
+        let id: Int
+        let image : String
+        let instructions : String
+        let readyInMinutes : Int
     }
     
     struct Result : Codable, Identifiable {
@@ -60,9 +85,5 @@ class CookingService: ObservableObject {
         let image : String
         let title : String
         let imageType : String
-    }
-    
-    func getRecipe(){
-        
     }
 }

@@ -16,7 +16,7 @@ struct ContentView: View {
         VStack {
             NavigationView {
                 VStack {
-                    Text("Searching for \(searchText)")
+                    Text("Search for \(searchText)")
                         .searchable(text: $searchText)
                         .navigationTitle("Cook book")
                         .onChange(of: searchText, perform: { newValue in
@@ -26,14 +26,33 @@ struct ContentView: View {
                         })
                     
                     List(cookingService.searchResults, id: \.id) { result in
-                        VStack {
-                            Text("\(result.title)")
-                            AsyncImage(url: URL(string: "\(result.image)"))
+                        NavigationLink {
+                            ScrollView{
+                                VStack{
+                                    Text("\(result.title)")
+                                        .bold()
+                                        .foregroundColor(.mint)
+                                        .onAppear {
+                                        Task{
+                                            cookingService.getRecipe(parameter: String(result.id))
+                                        }
+                                    }
+                                    AsyncImage(url: URL(string: "\(result.image)"))
+                                    Text("\(cookingService.recipe.instructions)")
+                                    Text("Ready in \(cookingService.recipe.readyInMinutes) minutes")
+                                        .bold()
+                                        .foregroundColor(.mint)
+                                }
+                            }
+                        } label: {
+                            VStack {
+                                Text("\(result.title)")
+                                AsyncImage(url: URL(string: "\(result.image)"))
+                            }
                         }
                     }
                     .padding()
                 }
-                
             }
         }
     }

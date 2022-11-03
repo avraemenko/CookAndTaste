@@ -8,36 +8,6 @@
 import Foundation
 
 
-/*
-let headers = [
-    "content-type": "application/x-www-form-urlencoded",
-    "X-RapidAPI-Key": "",
-    "X-RapidAPI-Host": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com"
-]
-
-let postData = NSMutableData(data: "instructions=Put the garlic in a pan and then add the onion.".data(using: String.Encoding.utf8)!)
-
-let request = NSMutableURLRequest(url: NSURL(string: "https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com/recipes/analyzeInstructions")! as URL,
-                                        cachePolicy: .useProtocolCachePolicy,
-                                    timeoutInterval: 10.0)
-request.httpMethod = "POST"
-request.allHTTPHeaderFields = headers
-request.httpBody = postData as Data
-
-let session = URLSession.shared
-let dataTask = session.dataTask(with: request as URLRequest, completionHandler: { (data, response, error) -> Void in
-    if (error != nil) {
-        print(error)
-    } else {
-        let httpResponse = response as? HTTPURLResponse
-        print(httpResponse)
-    }
-})
-
-dataTask.resume()
-*/
-
-
 protocol NetworkRequestBodyConvertible {
     
     var data: Data? { get }
