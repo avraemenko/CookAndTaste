@@ -46,25 +46,6 @@ protocol NetworkRequestBodyConvertible {
     
 }
 
-struct RecipeAnalyzeInstruction: NetworkRequestBodyConvertible {
-    
-    var text: String
-    
-    init(_ text: String) {
-        self.text = text
-    }
-    
-    var data: Data? {
-        "instructions=\(text)".data(using: .utf8)
-    }
-    var queryItems: [URLQueryItem]? { nil }
-    
-    var parameters: [String : Any]? {
-        ["instructions" : text]
-    }
-    
-}
-
 struct SearchForRecipe: NetworkRequestBodyConvertible {
     
     var text: String
@@ -72,7 +53,6 @@ struct SearchForRecipe: NetworkRequestBodyConvertible {
     init(_ text: String) {
         self.text = text
     }
-    
     var data: Data? {
         nil
     }
@@ -85,21 +65,52 @@ struct SearchForRecipe: NetworkRequestBodyConvertible {
     
 }
 
+struct RecipeByID: NetworkRequestBodyConvertible {
+    
+    var text: String
+    
+    init(_ text: String) {
+        self.text = text
+    }
+    var data: Data? {
+        nil
+    }
+    
+    var queryItems: [URLQueryItem]? { nil }
+    
+    var parameters: [String : Any]? {
+        ["id" : text]
+    }
+    
+}
 protocol Endpoint {
     
     var pathComponent: String { get }
     
 }
 
-enum RecipesEndpoint: String, Endpoint {
-    
+enum RecipesEndpoint: String, Endpoint{
+
     case analyzer = "recipes/analyzeInstructions"
     case complexSearch = "recipes/complexSearch"
-    
+
     var pathComponent: String {
         rawValue
     }
+
+}
+
+struct RecipeInfoEndpoint : Endpoint {
     
+    var pathComponent: String {
+        return "recipes/\(parameter)/information"
+    }
+    
+    private var parameter: String
+    
+    init(with parameter: String) {
+        self.parameter = parameter
+    }
 }
 
 final class Network<T: Endpoint> {

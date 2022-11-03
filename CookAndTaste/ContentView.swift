@@ -17,7 +17,7 @@ struct ContentView: View {
             NavigationView {
                 Text("Searching for \(searchText)")
                     .searchable(text: $searchText)
-                    .navigationTitle("Searchable Example")
+                    .navigationTitle("Cook book")
             }
             .padding()
         }
