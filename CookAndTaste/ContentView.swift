@@ -10,16 +10,31 @@ import SwiftUI
 struct ContentView: View {
     
     @State private var searchText = ""
-    let cookingService = CookingService()
+    @ObservedObject var cookingService = CookingService()
     
     var body: some View {
         VStack {
             NavigationView {
-                Text("Searching for \(searchText)")
-                    .searchable(text: $searchText)
-                    .navigationTitle("Cook book")
+                VStack {
+                    Text("Searching for \(searchText)")
+                        .searchable(text: $searchText)
+                        .navigationTitle("Cook book")
+                        .onChange(of: searchText, perform: { newValue in
+                            Task {
+                                await cookingService.fetchData(query: newValue)
+                            }
+                        })
+                    
+                    List(cookingService.searchResults, id: \.id) { result in
+                        VStack {
+                            Text("\(result.title)")
+                            AsyncImage(url: URL(string: "\(result.image)"))
+                        }
+                    }
+                    .padding()
+                }
+                
             }
-            .padding()
         }
     }
     
