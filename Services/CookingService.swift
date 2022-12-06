@@ -10,7 +10,7 @@ import Foundation
 class CookingService: ObservableObject {
     let headers = [
         "content-type": "application/x-www-form-urlencoded",
-        "X-RapidAPI-Key": "eb7269e4aamsh5d58aa07531c813p16834bjsn3b3e6e3dc04b",
+        "X-RapidAPI-Key": "d2efa304d8msh04d7681d1a312e6p117b8ajsn5917c738bc8f",
         "X-RapidAPI-Host": "spoonacular-recipe-food-nutrition-v1.p.rapidapi.com"
     ]
 
@@ -30,11 +30,11 @@ class CookingService: ObservableObject {
 
     init() {}
 
-    public func fetchData(query: String) async {
+    public func fetchData(query: String)  {
         Task {
             let data = try await networkService.perform(.get, .complexSearch, SearchForRecipe(query))
             do {
-                if let json = try JSONSerialization.jsonObject(with: data!, options: []) as? [String: Any], let results = json["results"] as? NSArray {
+                if let correctData = data, let json = try JSONSerialization.jsonObject(with: correctData, options: []) as? [String: Any], let results = json["results"] as? NSArray {
                     DispatchQueue.main.async {
                         self.searchResults = []
                     }
@@ -61,7 +61,7 @@ class CookingService: ObservableObject {
         Task {
             let data = try await complexNetworkService.perform(.get, RecipeInfoEndpoint(with: parameter), RecipeByID(parameter))
             do {
-                if let json = try JSONSerialization.jsonObject(with: data!, options: []) as? [String: Any] {
+                if let correctData = data, let json = try JSONSerialization.jsonObject(with: correctData, options: []) as? [String: Any] {
                     guard let id = json["id"] as? Int,
                           let image = json["image"] as? String,
                           let instructions = json["instructions"] as? String,
@@ -80,9 +80,10 @@ class CookingService: ObservableObject {
 
     func guessNutritionByDishName(parameter: String) {
         Task {
-            let data = try await complex2NetworkService.perform(.get, GuessNutritionEndpoint(), GuessNutrition(parameter))
+
             do {
-                let nutrition: Nutrition = try JSONDecoder().decode(Nutrition.self, from: data!)
+                guard let data = try await complex2NetworkService.perform(.get, GuessNutritionEndpoint(), GuessNutrition(parameter)) else { return }
+                let nutrition: Nutrition = try JSONDecoder().decode(Nutrition.self, from: data)
                 DispatchQueue.main.async {
                     self.nutritionData.append(nutrition)
                 }
@@ -95,9 +96,10 @@ class CookingService: ObservableObject {
 
     func classifyCuisine(parameter: String, ingredients: String) {
         Task {
-            let data = try await complex3NetworkService.perform(.post, ClassifyCuisineEndpoint(), ClassifyCuisine(parameter, ingredients))
+
+            guard let data = try await complex3NetworkService.perform(.post, ClassifyCuisineEndpoint(), ClassifyCuisine(parameter, ingredients)) else { return }
             do {
-                let cuisine: Cuisine = try JSONDecoder().decode(Cuisine.self, from: data!)
+                let cuisine: Cuisine = try JSONDecoder().decode(Cuisine.self, from: data)
                 DispatchQueue.main.async {
                     self.cuisine = cuisine.cuisine
                 }
