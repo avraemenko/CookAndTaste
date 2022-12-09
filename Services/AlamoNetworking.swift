@@ -10,7 +10,7 @@ import Foundation
 
 class AlamoNetworking<T: Endpoint> {
     enum Result {
-        case data(Data?)
+        case data(Data)
         case error(Error)
     }
 
@@ -26,15 +26,15 @@ class AlamoNetworking<T: Endpoint> {
         AF
             .request(host + "/\(endpoint.pathComponent)", method: method, parameters: parameters.parameters, headers: HTTPHeaders(headers))
             .response { response in
-                if let error = response.error {
+                if let data = response.data {
+                    completion(.data(data))
+                } else if let error = response.error {
                     completion(.error(error))
-                } else {
-                    completion(.data(response.data))
                 }
             }
     }
 
-    func perform(_ method: HTTPMethod, _ endpoint: T, _ parameters: NetworkRequestBodyConvertible) async throws -> Data? {
+    func perform(_ method: HTTPMethod, _ endpoint: T, _ parameters: NetworkRequestBodyConvertible) async throws -> Data {
         return try await withCheckedThrowingContinuation { continuation in
             perform(method, endpoint, parameters) { result in
                 switch result {

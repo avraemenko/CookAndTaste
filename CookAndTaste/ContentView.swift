@@ -20,7 +20,7 @@ struct ContentView: View {
                         .navigationTitle("Cook book")
                         .onChange(of: searchText, perform: { newValue in
                             Task {
-                                await cookingService.fetchData(query: newValue)
+                                cookingService.fetchData(query: newValue)
                             }
                         })
                         .onChange(of: searchText) { _ in

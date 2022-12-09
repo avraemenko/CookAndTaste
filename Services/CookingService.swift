@@ -23,18 +23,16 @@ class CookingService: ObservableObject {
 
     private lazy var networkService = AlamoNetworking<RecipesEndpoint>("https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com", headers: headers)
     private lazy var complexNetworkService = AlamoNetworking<RecipeInfoEndpoint>("https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com", headers: headers)
-
     private lazy var complex2NetworkService = AlamoNetworking<GuessNutritionEndpoint>("https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com", headers: headers)
-
     private lazy var complex3NetworkService = AlamoNetworking<ClassifyCuisineEndpoint>("https://spoonacular-recipe-food-nutrition-v1.p.rapidapi.com", headers: headers)
 
     init() {}
 
-    public func fetchData(query: String)  {
+    public func fetchData(query: String) {
         Task {
-            let data = try await networkService.perform(.get, .complexSearch, SearchForRecipe(query))
             do {
-                if let correctData = data, let json = try JSONSerialization.jsonObject(with: correctData, options: []) as? [String: Any], let results = json["results"] as? NSArray {
+                let data = try await networkService.perform(.get, .complexSearch, SearchForRecipe(query))
+                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any], let results = json["results"] as? NSArray {
                     DispatchQueue.main.async {
                         self.searchResults = []
                     }
@@ -50,8 +48,7 @@ class CookingService: ObservableObject {
                         }
                     }
                 }
-            }
-            catch let error as NSError {
+            } catch let error as NSError {
                 print("Failed to load: \(error.localizedDescription)")
             }
         }
@@ -59,9 +56,9 @@ class CookingService: ObservableObject {
 
     func getRecipe(parameter: String) {
         Task {
-            let data = try await complexNetworkService.perform(.get, RecipeInfoEndpoint(with: parameter), RecipeByID(parameter))
             do {
-                if let correctData = data, let json = try JSONSerialization.jsonObject(with: correctData, options: []) as? [String: Any] {
+                let data = try await complexNetworkService.perform(.get, RecipeInfoEndpoint(with: parameter), RecipeByID(parameter))
+                if let json = try JSONSerialization.jsonObject(with: data, options: []) as? [String: Any] {
                     guard let id = json["id"] as? Int,
                           let image = json["image"] as? String,
                           let instructions = json["instructions"] as? String,
@@ -71,8 +68,7 @@ class CookingService: ObservableObject {
                         self.recipe = RecipeInfo(id: id, image: image, instructions: instructions, readyInMinutes: readyInMinutes)
                     }
                 }
-            }
-            catch let error as NSError {
+            } catch let error as NSError {
                 print("Failed to load: \(error.localizedDescription)")
             }
         }
@@ -80,15 +76,13 @@ class CookingService: ObservableObject {
 
     func guessNutritionByDishName(parameter: String) {
         Task {
-
             do {
-                guard let data = try await complex2NetworkService.perform(.get, GuessNutritionEndpoint(), GuessNutrition(parameter)) else { return }
+                let data = try await complex2NetworkService.perform(.get, GuessNutritionEndpoint(), GuessNutrition(parameter))
                 let nutrition: Nutrition = try JSONDecoder().decode(Nutrition.self, from: data)
                 DispatchQueue.main.async {
                     self.nutritionData.append(nutrition)
                 }
-            }
-            catch let error as NSError {
+            } catch let error as NSError {
                 print("Failed to load: \(error.localizedDescription)")
             }
         }
@@ -96,15 +90,13 @@ class CookingService: ObservableObject {
 
     func classifyCuisine(parameter: String, ingredients: String) {
         Task {
-
-            guard let data = try await complex3NetworkService.perform(.post, ClassifyCuisineEndpoint(), ClassifyCuisine(parameter, ingredients)) else { return }
             do {
+                let data = try await complex3NetworkService.perform(.post, ClassifyCuisineEndpoint(), ClassifyCuisine(parameter, ingredients))
                 let cuisine: Cuisine = try JSONDecoder().decode(Cuisine.self, from: data)
                 DispatchQueue.main.async {
                     self.cuisine = cuisine.cuisine
                 }
-            }
-            catch let error as NSError {
+            } catch let error as NSError {
                 print("Failed to load: \(error.localizedDescription)")
             }
         }
